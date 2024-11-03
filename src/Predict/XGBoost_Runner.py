@@ -5,7 +5,7 @@ import warnings
 warnings.filterwarnings("ignore", category=FutureWarning, module="xgboost")
 xgb_uo = xgb.Booster()
 
-models = ["C:/Users/Ryan/Desktop/NBA_AI_Model/Models/XGBoost_54.439_UO,160,2024-10-29.json", "C:/Users/Ryan/Desktop/NBA_AI_Model/Models/XGBoost_54.961_UO,4,2024-10-29.json"]
+models = ["C:/Users/Ryan/Desktop/NBA_AI_Model/Models/XGBoost_54.569_UO,648,2024-10-29.json", "C:/Users/Ryan/Desktop/NBA_AI_Model/Models/XGBoost_54.83_UO,265,2024-10-31.json"]
 
 def predict_single_game(game_data):
     ou_predictions_array = []

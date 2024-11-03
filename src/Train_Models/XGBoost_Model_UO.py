@@ -34,7 +34,7 @@ data = data.astype(float)
 acc_results = []
 
 for x in tqdm(range(10000)):
-    if x % 50 == 0 and x != 0:
+    if x % 75 == 0 and x != 0:
         time.sleep(250)
     print(" Normal params, 10 < gp < 75, normal dataset")
     x_train, x_test, y_train, y_test = train_test_split(data, OU, test_size=0.1)

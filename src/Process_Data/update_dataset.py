@@ -124,7 +124,7 @@ def get_data_single_game(home_team, away_team, sb, all_games_data, date, home_sc
     for game_odds in sb.games:
         if game_odds['home_team'] != home_team:
             continue
-        ou_line = game_odds.get('total', {}).get('fanduel')
+        ou_line = game_odds.get('total', {}).get('draftkings')
         break
     home_team_data = next((team_data for team_data in all_games_data if team_data[1] == home_team), None)
     away_team_data = next((team_data for team_data in all_games_data if team_data[1] == away_team), None)
@@ -251,10 +251,10 @@ def update_nba_dataset():
     
     # Get the most recent date from the dataset
     most_recent_date = get_most_recent_date()
-    most_recent_date = "2024-10-20"
     if not most_recent_date:
         print("No previous data found.")
-    dates = loop_through_dates(most_recent_date)
+    print(most_recent_date)
+    dates = loop_through_dates("2024-10-29")
     all_game_dicts = []
     for date in dates:
         if not master_data_df[(master_data_df['Date'] == date)].empty:

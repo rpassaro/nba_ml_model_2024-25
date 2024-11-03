@@ -78,12 +78,14 @@ def get_todays_picks():
         single_game_df = pd.DataFrame(single_game_data, index=[0])
         prediction = predict_single_game(single_game_df)
         if prediction == None:
+            name_index += 1
             continue #No agreement
         else:
             if prediction == 0:
-                print(todays_names[name_index][0] + " vs " + todays_names[name_index][1] + ": UNDER " + str(single_game_data['OU']))
+                print("NBA | " + todays_names[name_index][0] + " vs " + todays_names[name_index][1] + ": UNDER " + str(single_game_data['OU']))
             else:
-                print(todays_names[name_index][0] + " vs " + todays_names[name_index][1] + ": OVER " + str(single_game_data['OU']))
+                print("NBA | " + todays_names[name_index][0] + " vs " + todays_names[name_index][1] + ": OVER " + str(single_game_data['OU']))
         name_index += 1
+    
 
 get_todays_picks()

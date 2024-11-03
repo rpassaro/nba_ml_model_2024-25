@@ -6,6 +6,13 @@ import os
 from tqdm import tqdm
 from send2trash import send2trash
 import sqlite3
+import scipy.stats as stats
+
+def get_test_length(file_name, games_df):
+    file_date = pd.to_datetime(file_name[file_name.index("2024"):file_name.index("2024") + 10])
+    games_df['Date'] = pd.to_datetime(games_df['Date'], format='%m/%d/%Y')
+    num_rows = games_df[games_df['Date'] > file_date].shape[0]
+    return num_rows
 
 def szn_model_test():
     
@@ -15,18 +22,21 @@ def szn_model_test():
 
     # Separate features and target label
     label = games_df['OU-Cover']
-    features = games_df.drop(columns=['TEAM_NAME', 'TEAM_NAME.1', 'index', 'Date', 'Date.1', 'Score', 'Home-Team-Win', 'OU-Cover'])
+    features = games_df.drop(columns=['TEAM_NAME', 'TEAM_NAME.1', 'index', 'Date', 'Score', 'Home-Team-Win', 'OU-Cover'])
 
     model_directory = "C:/Users/Ryan/Desktop/NBA_AI_Model/Models"
     # List all model files in the directory
     model_files = [f for f in os.listdir(model_directory) if f.endswith('.json')]
 
-    all_accuracies = []
-    accuracies = {}
+    all_cdfs = []
+    cdfs = {}
     accuracy_vals = []
     num_r = 0
 
     for model_file in tqdm(model_files, desc = "TESTING MODELS"):
+        max_games_tested = get_test_length(model_file, games_df)
+        if max_games_tested < 15:
+            continue
         num_r += 1
         model_path = os.path.join(model_directory, model_file)
 
@@ -36,11 +46,9 @@ def szn_model_test():
         ul = 0
         ow = 0
         ol = 0
-
         for index, row in features.iterrows():
-            if index < len(games_df) - 200:
+            if index < len(games_df) - min(max_games_tested, 200):
                 continue
-
             row_data = np.array(row).reshape(1, -1)
             dmatrix_data = xgb.DMatrix(row_data)
                 
@@ -62,32 +70,33 @@ def szn_model_test():
         games_won = ow + uw
 
         accuracy = (games_won) / (games_total)
+        binomcdf_over_58 = stats.binom.cdf(games_won, games_total, .58)
         
-        if accuracy < .47:
+        if binomcdf_over_58 < .01:
             print(f"\nFOUND BAD FILE, REMOVING NOW\nACCURACY: {accuracy}, FILE: {model_path}\n")
             if os.path.exists(model_path):
-                #os.remove(model_path)
+                os.remove(model_path)
                 print(accuracy)
             continue
         
-        all_accuracies.append(accuracy)
+        all_cdfs.append(binomcdf_over_58)
         
         min_accuracy = min(accuracy_vals) if len(accuracy_vals) > 0 else 0
         if len(accuracy_vals) < 2:
             accuracy_vals.append(accuracy)
-            accuracies[model_file] = accuracy
+            cdfs[model_file] = accuracy
         elif accuracy > min_accuracy:
-            for temp_file in accuracies:
-                if accuracies[temp_file] == min_accuracy:
-                    accuracies.pop(temp_file)
+            for temp_file in cdfs:
+                if cdfs[temp_file] == min_accuracy:
+                    cdfs.pop(temp_file)
                     break
-            accuracies[model_file] = accuracy
+            cdfs[model_file] = accuracy
             accuracy_vals.remove(min_accuracy)
             accuracy_vals.append(accuracy)
             
     print(accuracy_vals)
-    print(accuracies)
-    selected_models = list(accuracies.keys())
+    print(cdfs)
+    selected_models = list(cdfs.keys())
     model_index = 0
 
     # Define the path to the file you want to edit
